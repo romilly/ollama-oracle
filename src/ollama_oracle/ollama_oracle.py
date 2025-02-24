@@ -31,7 +31,7 @@ OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "120"))  # increased default ti
 class Librarian:
 
     def __init__(self):
-        self.connection = sqlite3.connect('../../pdf_files.db')
+        self.connection = sqlite3.connect('../pdf_files.db')
         self._create_table()
         self.client = Client(host=OLLAMA_URL, timeout=OLLAMA_TIMEOUT)
         print(f"Searching {DIRECTORY} using model {OLLAMA_MODEL} on Ollama server at {OLLAMA_URL}")
