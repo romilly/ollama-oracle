@@ -3,7 +3,7 @@
 import os
 import time
 import sqlite3
-import signal
+import sqlite3
 from pdfminer.high_level import extract_text
 from pydantic import BaseModel
 from ollama import Client
@@ -22,16 +22,12 @@ class TimeoutError(Exception):
     pass
 
 
-def timeout_handler(signum, frame):
-    raise TimeoutError("Request timed out")
-
-
 PAPER_FORMAT = Paper.model_json_schema()
 
 DIRECTORY = os.getenv("DIRECTORY", "../data/pdfs")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5")
-OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "30"))  # timeout in seconds
+OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "120"))  # increased default timeout to 120 seconds
 
 class Librarian:
 
@@ -52,27 +48,18 @@ class Librarian:
             "content": TEMPLATE.format(text=text)
         }]
         
-        # Set up the timeout handler
-        signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(OLLAMA_TIMEOUT)
-        
         try:
             response = self.client.chat(
                 model=OLLAMA_MODEL, 
                 messages=messages, 
                 format=PAPER_FORMAT,
-                timeout=OLLAMA_TIMEOUT  # Correct parameter for timeout
+                timeout=OLLAMA_TIMEOUT
             )
-            signal.alarm(0)  # Disable the alarm
             return Paper.model_validate_json(response.message.content)
-        except TimeoutError:
-            raise Exception(f"Ollama request timed out after {OLLAMA_TIMEOUT} seconds")
         except Exception as e:
             if "timeout" in str(e).lower():
                 raise Exception(f"Ollama request timed out after {OLLAMA_TIMEOUT} seconds") from e
             raise
-        finally:
-            signal.alarm(0)  # Ensure the alarm is disabled
 
     def update_paper(self, path: str):
         sql = """
