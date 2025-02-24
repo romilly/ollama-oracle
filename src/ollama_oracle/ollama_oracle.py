@@ -18,28 +18,28 @@ class Paper(BaseModel):
 PAPER_FORMAT = Paper.model_json_schema()
 
 
-def find_paper(path: str) -> Paper:
-    text = extract_text(path, maxpages=1)
-    messages = [{
-        "role": "user",
-        "content": TEMPLATE.format(text=text)
-    }]
-    client = Client(host= "http://localhost:11434")
-    response = client.chat('qwen2.5:14b', messages=messages, format=PAPER_FORMAT)
-    return Paper.model_validate_json(response.message.content)
-
-
-class Library:
+class Librarian:
 
     def __init__(self):
         self.connection = sqlite3.connect('../../pdf_files.db')
         self._create_table()
+        self.client = Client(host="http://xavier:11434")
 
     def __del__(self):
         self.connection.close()
 
+    def find_paper(self, path: str) -> Paper:
+        text = extract_text(path, maxpages=1)
+        messages = [{
+            "role": "user",
+            "content": TEMPLATE.format(text=text)
+        }]
+        response = self.client.chat('qwen2.5:14b', messages=messages, format=PAPER_FORMAT)
+        return Paper.model_validate_json(response.message.content)
+
+
     def update_paper(self, path: str):
-        paper = find_paper(path)
+        paper = self.find_paper(path)
         sql = """
         INSERT OR REPLACE INTO pdf_info (path, title, authors)
         VALUES (?, ?, ?)
@@ -66,10 +66,9 @@ class Library:
         self.connection.commit()
 
 
-def process_files(*file_list: str):
-    library = Library()
-    for path in file_list:
-        library.update_paper(path.strip())
+    def process_files(self, *file_list: str):
+        for path in file_list:
+            self.update_paper(path.strip())
 
 import os
 
@@ -90,6 +89,7 @@ if __name__ == '__main__':
     start_time = time.time()
     files = pdfs_in('../../data/pdfs')
     print(len(files))
-    process_files(*files)
+    library = Librarian()
+    library.process_files(*files)
     end_time = time.time()
     print(f"\nTime taken: {end_time - start_time:.2f} seconds")
