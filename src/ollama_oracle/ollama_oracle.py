@@ -3,6 +3,7 @@
 import os
 import time
 import sqlite3
+import signal
 from pdfminer.high_level import extract_text
 from pydantic import BaseModel
 from ollama import Client
@@ -15,6 +16,14 @@ TEMPLATE = "Can you tell me the title and author from this start of an academic 
 class Paper(BaseModel):
     title: str
     authors: list[str]
+
+
+class TimeoutError(Exception):
+    pass
+
+
+def timeout_handler(signum, frame):
+    raise TimeoutError("Request timed out")
 
 
 PAPER_FORMAT = Paper.model_json_schema()
@@ -42,18 +51,28 @@ class Librarian:
             "role": "user",
             "content": TEMPLATE.format(text=text)
         }]
+        
+        # Set up the timeout handler
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(OLLAMA_TIMEOUT)
+        
         try:
             response = self.client.chat(
-                OLLAMA_MODEL, 
+                model=OLLAMA_MODEL, 
                 messages=messages, 
                 format=PAPER_FORMAT,
-                options={"timeout": OLLAMA_TIMEOUT}
+                timeout=OLLAMA_TIMEOUT  # Correct parameter for timeout
             )
+            signal.alarm(0)  # Disable the alarm
             return Paper.model_validate_json(response.message.content)
+        except TimeoutError:
+            raise Exception(f"Ollama request timed out after {OLLAMA_TIMEOUT} seconds")
         except Exception as e:
             if "timeout" in str(e).lower():
                 raise Exception(f"Ollama request timed out after {OLLAMA_TIMEOUT} seconds") from e
             raise
+        finally:
+            signal.alarm(0)  # Ensure the alarm is disabled
 
     def update_paper(self, path: str):
         sql = """

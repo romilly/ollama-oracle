@@ -54,9 +54,10 @@ pip install -r requirements.txt
 
 1. Optionally, create a `.env` file with your configuration. If you don't it will use the defaults below:
 ```env
-OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=qwen2.5
-DIRECTORY=../data/pdfs
+OLLAMA_URL=http://localhost:11434   # URL of your Ollama server
+OLLAMA_MODEL=qwen2.5               # The model to use for text analysis
+DIRECTORY=../data/pdfs             # Directory containing your PDF files
+OLLAMA_TIMEOUT=30                  # Timeout in seconds for Ollama requests
 ```
 
 ## Usage
@@ -74,13 +75,15 @@ This will process all PDF files in the directory specified by your `DIRECTORY` e
 
 The tool is specifically designed to work with academic PDFs. Since many academic papers lack proper metadata, Ollama Oracle scans the first page of each PDF and uses an LLM (Large Language Model) to extract the title and authors. This technique works for approximately 99% of academic papers I've tried.
 
+To ensure reliability, especially when processing large numbers of PDFs or when running on remote servers, the tool implements a configurable timeout for Ollama requests (default 30 seconds). If a request to the Ollama server doesn't complete within the timeout period, the tool will skip that PDF and continue processing the remaining files.
+
 ### Data Flow
 
 ```mermaid
 flowchart LR
     A[PDF Directory] -->|pdfs_in| B[PDF Files]
     B -->|extract_text| C[First Page Text]
-    C -->|Ollama LLM| D[Title & Authors]
+    C -->|Ollama LLM with timeout| D[Title & Authors]
     D -->|SQLite| E[(Database)]
     
     subgraph Processing
@@ -99,7 +102,7 @@ flowchart LR
 The diagram shows how:
 1. The tool scans a directory tree for PDF files
 2. For each PDF, it extracts text from the first page
-3. The text is sent to the Ollama LLM to identify the title and authors
+3. The text is sent to the Ollama LLM (with a configurable timeout) to identify the title and authors
 4. The extracted information is stored in a SQLite database
 
 ## Database Schema
