@@ -19,8 +19,10 @@ class Paper(BaseModel):
 
 PAPER_FORMAT = Paper.model_json_schema()
 
+DIRECTORY = os.getenv("DIRECTORY", "../data/pdfs")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5")
+OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "30"))  # timeout in seconds
 
 class Librarian:
 
@@ -28,7 +30,8 @@ class Librarian:
         self.connection = sqlite3.connect('../../pdf_files.db')
         self._create_table()
         self.client = Client(host=OLLAMA_URL)
-        print(OLLAMA_URL)
+        print(f"Searching {DIRECTORY} using model {OLLAMA_MODEL} on Ollama server at {OLLAMA_URL}")
+        print(f"Timeout set to {OLLAMA_TIMEOUT} seconds")
 
     def __del__(self):
         self.connection.close()
@@ -39,9 +42,18 @@ class Librarian:
             "role": "user",
             "content": TEMPLATE.format(text=text)
         }]
-        response = self.client.chat(OLLAMA_MODEL, messages=messages, format=PAPER_FORMAT)
-        return Paper.model_validate_json(response.message.content)
-
+        try:
+            response = self.client.chat(
+                OLLAMA_MODEL, 
+                messages=messages, 
+                format=PAPER_FORMAT,
+                options={"timeout": OLLAMA_TIMEOUT}
+            )
+            return Paper.model_validate_json(response.message.content)
+        except Exception as e:
+            if "timeout" in str(e).lower():
+                raise Exception(f"Ollama request timed out after {OLLAMA_TIMEOUT} seconds") from e
+            raise
 
     def update_paper(self, path: str):
         sql = """
@@ -94,8 +106,6 @@ def pdfs_in(directory: str):
 
 
 if __name__ == '__main__':
-    load_dotenv()
-    DIRECTORY = os.getenv("DIRECTORY", "../data/pdfs")
     start_time = time.time()
     # files = pdfs_in('../../data/pdfs')
     files = pdfs_in(DIRECTORY)
