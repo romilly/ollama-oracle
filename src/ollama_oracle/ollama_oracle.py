@@ -3,7 +3,6 @@
 import os
 import time
 import sqlite3
-import sqlite3
 from pdfminer.high_level import extract_text
 from pydantic import BaseModel
 from ollama import Client
@@ -34,7 +33,7 @@ class Librarian:
     def __init__(self):
         self.connection = sqlite3.connect('../../pdf_files.db')
         self._create_table()
-        self.client = Client(host=OLLAMA_URL)
+        self.client = Client(host=OLLAMA_URL, timeout=OLLAMA_TIMEOUT)
         print(f"Searching {DIRECTORY} using model {OLLAMA_MODEL} on Ollama server at {OLLAMA_URL}")
         print(f"Timeout set to {OLLAMA_TIMEOUT} seconds")
 
@@ -52,8 +51,7 @@ class Librarian:
             response = self.client.chat(
                 model=OLLAMA_MODEL, 
                 messages=messages, 
-                format=PAPER_FORMAT,
-                timeout=OLLAMA_TIMEOUT
+                format=PAPER_FORMAT
             )
             return Paper.model_validate_json(response.message.content)
         except Exception as e:
