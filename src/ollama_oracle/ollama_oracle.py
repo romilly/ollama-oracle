@@ -62,8 +62,7 @@ class Librarian:
         CREATE TABLE IF NOT EXISTS pdf_info (
             path TEXT PRIMARY KEY,
             title TEXT,
-            authors TEXT,
-            UNIQUE(title)
+            authors TEXT
         );
         """
         cursor = self.connection.cursor()
