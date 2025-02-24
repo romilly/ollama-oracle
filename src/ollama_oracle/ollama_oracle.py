@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
+import os
 import time
-
+import sqlite3
 from pdfminer.high_level import extract_text
 from pydantic import BaseModel
-import sqlite3
 from ollama import Client
+from dotenv import load_dotenv
 
+load_dotenv()
 TEMPLATE = "Can you tell me the title and author from this start of an academic paper?{text}"
 
 
@@ -17,13 +19,16 @@ class Paper(BaseModel):
 
 PAPER_FORMAT = Paper.model_json_schema()
 
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:0.5b")
 
 class Librarian:
 
     def __init__(self):
         self.connection = sqlite3.connect('../../pdf_files.db')
         self._create_table()
-        self.client = Client(host="http://xavier:11434")
+        self.client = Client(host=OLLAMA_URL)
+        print(OLLAMA_URL)
 
     def __del__(self):
         self.connection.close()
@@ -34,7 +39,7 @@ class Librarian:
             "role": "user",
             "content": TEMPLATE.format(text=text)
         }]
-        response = self.client.chat('qwen2.5:14b', messages=messages, format=PAPER_FORMAT)
+        response = self.client.chat(OLLAMA_MODEL, messages=messages, format=PAPER_FORMAT)
         return Paper.model_validate_json(response.message.content)
 
 
@@ -87,7 +92,8 @@ def pdfs_in(directory: str):
 
 if __name__ == '__main__':
     start_time = time.time()
-    files = pdfs_in('../../data/pdfs')
+    # files = pdfs_in('../../data/pdfs')
+    files = pdfs_in('/home/romilly/git/active/articles/ai')
     print(len(files))
     library = Librarian()
     library.process_files(*files)
