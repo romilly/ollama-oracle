@@ -44,17 +44,21 @@ class Librarian:
 
 
     def update_paper(self, path: str):
-        paper = self.find_paper(path)
         sql = """
         INSERT OR REPLACE INTO pdf_info (path, title, authors)
         VALUES (?, ?, ?)
 
         """
-        cursor = self.connection.cursor()
-        params = (path, paper.title, ', '.join(paper.authors))
-        print(params)
-        cursor.execute(sql, params)
-        self.connection.commit()
+
+        try:
+            paper = self.find_paper(path)
+            cursor = self.connection.cursor()
+            params = (path, paper.title, ', '.join(paper.authors))
+            print(params)
+            cursor.execute(sql, params)
+            self.connection.commit()
+        except Exception as e:
+            print(f"Cannot update {path}: {e}")
 
     def _create_table(self):
         """Create the pdf_info table if it does not exist."""
