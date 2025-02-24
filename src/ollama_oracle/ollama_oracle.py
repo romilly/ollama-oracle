@@ -20,7 +20,7 @@ class Paper(BaseModel):
 PAPER_FORMAT = Paper.model_json_schema()
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:0.5b")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5")
 
 class Librarian:
 
