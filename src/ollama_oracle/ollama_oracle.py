@@ -91,9 +91,11 @@ def pdfs_in(directory: str):
 
 
 if __name__ == '__main__':
+    load_dotenv()
+    DIRECTORY = os.getenv("DIRECTORY", "../data/pdfs")
     start_time = time.time()
     # files = pdfs_in('../../data/pdfs')
-    files = pdfs_in('/home/romilly/git/active/articles/ai')
+    files = pdfs_in(DIRECTORY)
     print(len(files))
     library = Librarian()
     library.process_files(*files)
