@@ -113,24 +113,30 @@ INDEX_TEMPLATE = """<!DOCTYPE html>
                 <h2><i class="fas fa-file-pdf me-2"></i> PDF Files</h2>
                 <div class="table-responsive">
                     <table class="table table-hover">
+                        <colgroup>
+                            <col style="width: 15%;">
+                            <col style="width: 50%;">
+                            <col style="width: 30%;">
+                            <col style="width: 5%;">
+                        </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th scope="col" style="width: 15%">File Name</th>
-                                <th scope="col" style="width: 50%">Title</th>
-                                <th scope="col" style="width: 30%">Authors</th>
-                                <th scope="col" style="width: 5%">Actions</th>
+                                <th>File Name</th>
+                                <th>Title</th>
+                                <th>Authors</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for pdf in pdf_files %}
                             <tr>
-                                <td style="width: 15%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <td class="text-truncate" style="max-width: 150px;">
                                     <i class="fas fa-file-pdf pdf-icon me-2"></i>
                                     <a href="{{ pdf.url }}" class="text-decoration-none" title="{{ pdf.filename }}">{{ pdf.filename }}</a>
                                 </td>
-                                <td style="width: 50%">{{ pdf.title }}</td>
-                                <td style="width: 30%">{{ pdf.authors }}</td>
-                                <td style="width: 5%">
+                                <td>{{ pdf.title }}</td>
+                                <td>{{ pdf.authors }}</td>
+                                <td class="text-center">
                                     <a href="{{ pdf.url }}" class="btn btn-sm btn-primary" title="Download">
                                         <i class="fas fa-download"></i>
                                     </a>
