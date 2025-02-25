@@ -180,7 +180,7 @@ def create_index_files(root_dir, db_path, server_url_prefix, original_path_prefi
     cursor = conn.cursor()
     
     # Get all PDF entries from the database
-    cursor.execute("SELECT path, title, authors FROM pdfs")
+    cursor.execute("SELECT path, title, authors FROM pdf_info")
     pdf_entries = cursor.fetchall()
     
     # Create a dictionary to store metadata by path
