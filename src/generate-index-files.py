@@ -115,22 +115,22 @@ INDEX_TEMPLATE = """<!DOCTYPE html>
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">File Name</th>
-                                <th scope="col">Title</th>
-                                <th scope="col">Authors</th>
-                                <th scope="col">Actions</th>
+                                <th scope="col" style="width: 15%">File Name</th>
+                                <th scope="col" style="width: 50%">Title</th>
+                                <th scope="col" style="width: 30%">Authors</th>
+                                <th scope="col" style="width: 5%">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for pdf in pdf_files %}
                             <tr>
-                                <td>
+                                <td style="width: 15%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                     <i class="fas fa-file-pdf pdf-icon me-2"></i>
-                                    <a href="{{ pdf.url }}" class="text-decoration-none">{{ pdf.filename }}</a>
+                                    <a href="{{ pdf.url }}" class="text-decoration-none" title="{{ pdf.filename }}">{{ pdf.filename }}</a>
                                 </td>
-                                <td>{{ pdf.title }}</td>
-                                <td>{{ pdf.authors }}</td>
-                                <td>
+                                <td style="width: 50%">{{ pdf.title }}</td>
+                                <td style="width: 30%">{{ pdf.authors }}</td>
+                                <td style="width: 5%">
                                     <a href="{{ pdf.url }}" class="btn btn-sm btn-primary" title="Download">
                                         <i class="fas fa-download"></i>
                                     </a>
@@ -180,7 +180,7 @@ def create_index_files(root_dir, db_path, server_url_prefix, original_path_prefi
     cursor = conn.cursor()
     
     # Get all PDF entries from the database
-    cursor.execute("SELECT path, title, authors FROM pdf_info")
+    cursor.execute("SELECT path, title, authors FROM pdfs")
     pdf_entries = cursor.fetchall()
     
     # Create a dictionary to store metadata by path
