@@ -2,6 +2,8 @@
 
 Ollama Oracle is a Python-based tool that helps manage and extract information from academic papers using the Ollama platform. It automatically extracts titles and authors from PDF papers and stores this information in a SQLite database for easy reference.
 
+The name "Oracle" refers to the wisdom and knowledge-extraction capabilities of the Large Language Model, drawing on the ancient meaning of an oracle as a source of wisdom and insight. This project is not affiliated with or related to Oracle®, the database company.
+
 ## Features
 
 - Automatically extracts paper titles and authors from PDF files
